@@ -88,7 +88,7 @@ func (s *Server) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.Val
 	}, nil
 }
 
-// Add an empty implementation of mustEmbedUnimplementedAuthServiceServer to satisfy the interface requirements.
-func (s *Server) mustEmbedUnimplementedAuthServiceServer() {
-	// Empty implementation
-}
+// // Add an empty implementation of mustEmbedUnimplementedAuthServiceServer to satisfy the interface requirements.
+// func (s *Server) mustEmbedUnimplementedAuthServiceServer() {
+// 	// Empty implementation
+// }
