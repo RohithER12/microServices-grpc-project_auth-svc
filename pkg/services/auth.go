@@ -22,7 +22,14 @@ type Server struct {
 func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	var user models.User
 
-	if result := s.H.DB.Where(&models.User{Email: req.Email}).First(&user); result.Error == nil {
+	// if result := s.H.DB.Where(&models.User{Email: req.Email}).First(&user); result.Error == nil {
+	// 	return &pb.RegisterResponse{
+	// 		Status: http.StatusConflict,
+	// 		Error:  "E-Mail already exists",
+	// 	}, nil
+	// }
+	_, err := s.User.FindByEmail(req.Email)
+	if err == nil {
 		return &pb.RegisterResponse{
 			Status: http.StatusConflict,
 			Error:  "E-Mail already exists",
@@ -33,7 +40,7 @@ func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 	user.Password = utils.HashPassword(req.Password)
 	fmt.Println("\nh\n", s.H)
 	// s.H.DB.Create(&user)
-	err := s.User.Register(user)
+	err = s.User.Register(user)
 	if err != nil {
 
 		return nil, err
@@ -45,15 +52,22 @@ func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 
 func (s *Server) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	var user models.User
-
-	if result := s.H.DB.Where(&models.User{Email: req.Email}).First(&user); result.Error != nil {
+	email := req.Email
+	// if result := s.H.DB.Where(&models.User{Email: req.Email}).First(&user); result.Error != nil {
+	// 	return &pb.LoginResponse{
+	// 		Status: http.StatusNotFound,
+	// 		Error:  "User not found",
+	// 	}, nil
+	// }
+	result, err := s.User.FindByEmail(email)
+	if err != nil {
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
 			Error:  "User not found",
 		}, nil
 	}
 
-	match := utils.CheckPasswordHash(req.Password, user.Password)
+	match := utils.CheckPasswordHash(req.Password, result.Password)
 
 	if !match {
 		return &pb.LoginResponse{

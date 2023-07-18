@@ -7,7 +7,7 @@ import (
 
 type User interface {
 	Register(models.User) error
-	Login(models.User) error
+	FindByEmail(email string) (models.User, error)
 }
 
 func NewUserImpl() User {
