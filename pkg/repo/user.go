@@ -5,12 +5,11 @@ import (
 
 	"github.com/RohithER12/auth-svc/pkg/db"
 	"github.com/RohithER12/auth-svc/pkg/models"
-	"github.com/RohithER12/auth-svc/pkg/pb"
+	"gorm.io/gorm"
 )
 
 type UserImpl struct {
 	H db.Handler
-	pb.UnimplementedAuthServiceServer
 }
 
 func (u *UserImpl) Register(user models.User) error {
@@ -19,11 +18,27 @@ func (u *UserImpl) Register(user models.User) error {
 		"\nuser", user,
 		"\nh\n", u.H,
 	)
-	u.H.DB.Create(&user)
+	result := u.H.DB.Create(&user)
+	if result.Error != nil {
+		return result.Error
+	}
 	return nil
 }
 
-func (u *UserImpl) Login(user models.User) error {
-	// Implement the Register method
-	return nil
+// func (u *UserImpl) Login(email string) (models.User, error) {
+// 	var user models.User
+// 	var result *gorm.DB
+// 	if result = u.H.DB.Where(&models.User{Email: email}).First(&user); result.Error != nil {
+// 		return models.User{}, result.Error
+// 	}
+// 	return user, nil
+// }
+
+func (u *UserImpl) FindByEmail(email string) (models.User, error) {
+	var user models.User
+	var result *gorm.DB
+	if result = u.H.DB.Where(&models.User{Email: email}).First(&user); result.Error != nil {
+		return models.User{}, result.Error
+	}
+	return user, nil
 }
