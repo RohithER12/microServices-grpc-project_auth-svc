@@ -2,18 +2,21 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/RohithER12/auth-svc/pkg/db"
 	"github.com/RohithER12/auth-svc/pkg/models"
 	"github.com/RohithER12/auth-svc/pkg/pb"
+	"github.com/RohithER12/auth-svc/pkg/repo/user_interface"
 	"github.com/RohithER12/auth-svc/pkg/utils"
 )
 
 type Server struct {
 	pb.UnimplementedAuthServiceServer
-	H   db.Handler
-	Jwt utils.JwtWrapper
+	H    *db.Handler
+	Jwt  utils.JwtWrapper
+	User user_interface.User
 }
 
 func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
@@ -28,9 +31,13 @@ func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 
 	user.Email = req.Email
 	user.Password = utils.HashPassword(req.Password)
+	fmt.Println("\nh\n", s.H)
+	// s.H.DB.Create(&user)
+	err := s.User.Register(user)
+	if err != nil {
 
-	s.H.DB.Create(&user)
-
+		return nil, err
+	}
 	return &pb.RegisterResponse{
 		Status: http.StatusCreated,
 	}, nil
@@ -88,7 +95,7 @@ func (s *Server) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.Val
 	}, nil
 }
 
-// Add an empty implementation of mustEmbedUnimplementedAuthServiceServer to satisfy the interface requirements.
-func (s *Server) mustEmbedUnimplementedAuthServiceServer() {
-	// Empty implementation
-}
+// // Add an empty implementation of mustEmbedUnimplementedAuthServiceServer to satisfy the interface requirements.
+// func (s *Server) mustEmbedUnimplementedAuthServiceServer() {
+// 	// Empty implementation
+// }
