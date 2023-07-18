@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/RohithER12/auth-svc/pkg/db"
@@ -36,16 +35,83 @@ func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 		}, nil
 	}
 
+	_, err = s.User.FindByPhoneNumber(req.PhoneNumber)
+	if err == nil {
+		return &pb.RegisterResponse{
+			Status: http.StatusConflict,
+			Error:  "Mobile Number already exists",
+		}, nil
+	}
+
 	user.Email = req.Email
 	user.Password = utils.HashPassword(req.Password)
-	fmt.Println("\nh\n", s.H)
+	user.MobileNo = req.PhoneNumber
+
 	// s.H.DB.Create(&user)
 	err = s.User.Register(user)
 	if err != nil {
 
 		return nil, err
 	}
+	otpValidationKey, err := utils.SendOtp(req.PhoneNumber)
+	if err != nil {
+		return &pb.RegisterResponse{
+			Status: http.StatusConflict,
+			Error:  "Otp sending failed",
+		}, nil
+	}
+
+	creatingOtp := models.RegisterOTPValidation{
+		MobileNo: req.PhoneNumber,
+		Key:      otpValidationKey,
+	}
+
+	err = s.User.RegisterOTPValidation(creatingOtp)
+	if err != nil {
+		return &pb.RegisterResponse{
+			Status: http.StatusConflict,
+			Error:  "otp key and mob no saving failed",
+		}, nil
+	}
+
 	return &pb.RegisterResponse{
+		Status:           http.StatusCreated,
+		OtpValidationKey: otpValidationKey,
+	}, nil
+}
+
+func (s *Server) RegisterOTPValidation(ctx context.Context, req *pb.RegisterOTPValidationRequest) (*pb.RegisterOTPValidationResponse, error) {
+
+	fetchingMobNo, err := s.User.FindByMobileNoAndKey(req.Key)
+	if err != nil {
+		return &pb.RegisterOTPValidationResponse{
+			Status: http.StatusConflict,
+			Error:  "Invalid Key",
+		}, nil
+	}
+	err = utils.CheckOtp(fetchingMobNo, req.Otp)
+	if err != nil {
+		return &pb.RegisterOTPValidationResponse{
+			Status: http.StatusConflict,
+			Error:  "Invalid otp",
+		}, nil
+	}
+	user, err := s.User.FindByPhoneNumber(fetchingMobNo)
+	if err != nil {
+		return &pb.RegisterOTPValidationResponse{
+			Status: http.StatusConflict,
+			Error:  "Fetch user data using phone number error in registerOTPvalidation",
+		}, nil
+	}
+	user.Verified = true
+	err = s.User.Update(user)
+	if err != nil {
+		return &pb.RegisterOTPValidationResponse{
+			Status: http.StatusConflict,
+			Error:  "can't update register verfication",
+		}, nil
+	}
+	return &pb.RegisterOTPValidationResponse{
 		Status: http.StatusCreated,
 	}, nil
 }

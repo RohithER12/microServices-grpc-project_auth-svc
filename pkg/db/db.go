@@ -19,7 +19,7 @@ func Init(url string) *Handler {
 		log.Fatalln(err)
 	}
 
-	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.User{}, &models.RegisterOTPValidation{})
 
 	return &Handler{DB: db}
 }
