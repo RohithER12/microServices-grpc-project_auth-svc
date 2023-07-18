@@ -12,7 +12,7 @@ type Handler struct {
 	DB *gorm.DB
 }
 
-func Init(url string) Handler {
+func Init(url string) *Handler {
 	db, err := gorm.Open(postgres.Open(url), &gorm.Config{})
 
 	if err != nil {
@@ -21,5 +21,5 @@ func Init(url string) Handler {
 
 	db.AutoMigrate(&models.User{})
 
-	return Handler{db}
+	return &Handler{DB: db}
 }

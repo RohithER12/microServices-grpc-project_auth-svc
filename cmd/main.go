@@ -8,8 +8,11 @@ import (
 	"github.com/RohithER12/auth-svc/pkg/config"
 	"github.com/RohithER12/auth-svc/pkg/db"
 	"github.com/RohithER12/auth-svc/pkg/pb"
+	"github.com/RohithER12/auth-svc/pkg/repo"
+	"github.com/RohithER12/auth-svc/pkg/repo/user_interface"
 	"github.com/RohithER12/auth-svc/pkg/services"
 	"github.com/RohithER12/auth-svc/pkg/utils"
+	"github.com/google/wire"
 	"google.golang.org/grpc"
 )
 
@@ -36,9 +39,11 @@ func main() {
 
 	fmt.Println("Auth Svc on", c.Port)
 
+	user := InitializeUserImpl(h)
 	s := services.Server{
-		H:   h,
-		Jwt: jwt,
+		H:    h,
+		Jwt:  jwt,
+		User: user,
 	}
 
 	grpcServer := grpc.NewServer()
@@ -47,5 +52,12 @@ func main() {
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalln("Failed to serve:", err)
+	}
+}
+
+func InitializeUserImpl(h *db.Handler) user_interface.User {
+	wire.Build(user_interface.NewUserImpl)
+	return &repo.UserImpl{
+		H: *h,
 	}
 }
