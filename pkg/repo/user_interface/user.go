@@ -8,6 +8,10 @@ import (
 type User interface {
 	Register(models.User) error
 	FindByEmail(email string) (models.User, error)
+	FindByPhoneNumber(mob string) (models.User, error)
+	Update(user models.User) error
+	RegisterOTPValidation(user models.RegisterOTPValidation) error
+	FindByMobileNoAndKey(key string) (string, error)
 }
 
 func NewUserImpl() User {
