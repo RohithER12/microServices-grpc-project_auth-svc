@@ -142,6 +142,20 @@ func (s *Server) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResp
 		}, nil
 	}
 
+	if !result.Verified {
+		return &pb.LoginResponse{
+			Status: http.StatusNotFound,
+			Error:  "Account not verified",
+		}, nil
+	}
+
+	if result.Blocked {
+		return &pb.LoginResponse{
+			Status: http.StatusNotFound,
+			Error:  "Account Blocked",
+		}, nil
+	}
+
 	token, _ := s.Jwt.GenerateToken(user)
 
 	return &pb.LoginResponse{
