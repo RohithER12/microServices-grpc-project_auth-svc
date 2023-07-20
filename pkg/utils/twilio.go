@@ -25,6 +25,11 @@ func init() {
 	TWILIO_ACCOUNT_SID = config.TWILIO_ACCOUNT_SID
 	TWILIO_AUTH_TOKEN = config.TWILIO_AUTH_TOCKEN
 	TWILIO_SERVICE_ID = config.TWILIO_SERVICE_ID
+	fmt.Println(
+		"\nTWILIO_ACCOUNT_SID\n", TWILIO_ACCOUNT_SID,
+		"\nTWILIO_AUTH_TOKEN\n", TWILIO_AUTH_TOKEN,
+		"\nTWILIO_SERVICE_ID\n", TWILIO_SERVICE_ID,
+	)
 	client = twilio.NewRestClientWithParams(twilio.ClientParams{
 		Username: TWILIO_ACCOUNT_SID,
 		Password: TWILIO_AUTH_TOKEN,
@@ -39,6 +44,11 @@ func SendOtp(phone string) (string, error) {
 	params.SetChannel("sms")
 
 	resp, err := client.VerifyV2.CreateVerification(TWILIO_SERVICE_ID, params)
+
+	fmt.Println(
+		"mob\n", to,
+		"\nparams\n\n", params, "\n\n...", TWILIO_SERVICE_ID)
+
 	if err != nil {
 		fmt.Println("Invalid PhoneNumber\n", err.Error())
 		return "", err
