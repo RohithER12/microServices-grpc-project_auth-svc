@@ -19,6 +19,15 @@ func (u *UserImpl) Register(user models.User) error {
 	return nil
 }
 
+func (u *UserImpl) CreateAddress(address models.Address) error {
+
+	result := u.H.DB.Create(&address)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
 // func (u *UserImpl) Login(email string) (models.User, error) {
 // 	var user models.User
 // 	var result *gorm.DB
@@ -36,6 +45,16 @@ func (u *UserImpl) FindByEmail(email string) (models.User, error) {
 	}
 	return user, nil
 }
+
+func (u *UserImpl) FindById(id int64) (models.User, error) {
+	var user models.User
+	var result *gorm.DB
+	if result = u.H.DB.Where(&models.User{Id: id}).First(&user); result.Error != nil {
+		return models.User{}, result.Error
+	}
+	return user, nil
+}
+
 func (u *UserImpl) FindByPhoneNumber(mob string) (models.User, error) {
 	var user models.User
 	var result *gorm.DB
