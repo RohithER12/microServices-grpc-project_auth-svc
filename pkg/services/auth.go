@@ -241,11 +241,47 @@ func (s *Server) ResetPasswordValidation(ctx context.Context, req *pb.ResetPassw
 
 }
 
-func (s *Server) AddAddress(ctx context.Context, *pb.UserProfileResponse, error){
+func (s *Server) AddAddress(ctx context.Context, req *pb.AddAddressRequest) (*pb.AddAddressResponse, error) {
 
+	user, err := s.User.FindById(req.UserId)
+	if err != nil {
+		return &pb.AddAddressResponse{
+			Status: http.StatusConflict,
+			Error:  "Address creating  Failed",
+		}, nil
+	}
+	address := models.Address{
+		DoorNo:     req.DoorNo,
+		City:       req.City,
+		PostalCode: req.PostalCodev,
+		UserId:     req.UserId,
+		MobileNo:   user.MobileNo,
+	}
+	if s.User.CreateAddress(address); err != nil {
+		return &pb.AddAddressResponse{
+			Status: http.StatusConflict,
+			Error:  "Address creating  Failed",
+		}, nil
+	}
+
+	return &pb.AddAddressResponse{
+		Status: http.StatusCreated,
+	}, nil
 }
 
-func (s *Server) UserProfile(ctx context.Context, *pb.UserProfileResponse, error) {
+func (s *Server) UserProfile(ctx context.Context, req *pb.UserProfileRequest) (*pb.UserProfileResponse, error) {
+	user, err := s.User.FindById(req.UserId)
+	if err != nil {
+		return &pb.UserProfileResponse{
+			Status: http.StatusConflict,
+			Error:  "Fetching User Data Failed",
+		}, nil
+	}
+	return &pb.UserProfileResponse{
+		Email:       user.Email,
+		PhoneNumber: user.MobileNo,
+		Status:      http.StatusCreated,
+	}, nil
 
 }
 

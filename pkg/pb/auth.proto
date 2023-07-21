@@ -48,6 +48,8 @@ message AddAddressRequest {
   string city = 2;
   string postalCodev =3;
   string state = 4;
+  int64 userId = 5;
+
 }
 
 message AddAddressResponse {
@@ -96,11 +98,14 @@ message ResetPasswordValidationResponse {
 // UserProfile
 
 message UserProfileRequest {
+  int64 userId = 1;
 }
 
 message UserProfileResponse {
   string email = 1;
   string phone_number = 2;
+  int64 status = 3;
+  string error = 4;
 
 }
 

@@ -16,7 +16,7 @@ type RegisterOTPValidation struct {
 }
 
 type Address struct {
-	UserId     int64  `json:"id" gorm:"userId"`
+	UserId     int64  `json:"userId"`
 	MobileNo   string `json:"phone_number"`
 	DoorNo     string `json:"doorno"`
 	City       string `json:"city"`
