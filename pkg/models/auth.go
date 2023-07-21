@@ -14,3 +14,12 @@ type RegisterOTPValidation struct {
 	MobileNo string `json:"phone_number"`
 	Key      string `json:"key"`
 }
+
+type Address struct {
+	UserId     int64  `json:"id" gorm:"userId"`
+	MobileNo   string `json:"phone_number"`
+	DoorNo     string `json:"doorno"`
+	City       string `json:"city"`
+	PostalCode string `json:"postalCode"`
+	State      string `json:"state"`
+}

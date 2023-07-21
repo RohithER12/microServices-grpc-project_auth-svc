@@ -164,6 +164,91 @@ func (s *Server) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResp
 	}, nil
 }
 
+func (s *Server) ResetPassword(ctx context.Context, req *pb.ResetPasswordRequest) (*pb.ResetPasswordResponse, error) {
+	user, err := s.User.FindByPhoneNumber(req.PhoneNumber)
+	if err != nil {
+		return &pb.ResetPasswordResponse{
+			Status: http.StatusConflict,
+			Error:  "Mobile Number not valid",
+		}, nil
+	}
+
+	otpValidationKey, err := utils.SendOtp(user.MobileNo)
+	if err != nil {
+		return &pb.ResetPasswordResponse{
+			Status: http.StatusConflict,
+			Error:  "Otp sending failed",
+		}, nil
+	}
+
+	creatingOtp := models.RegisterOTPValidation{
+		MobileNo: req.PhoneNumber,
+		Key:      otpValidationKey,
+	}
+
+	err = s.User.RegisterOTPValidation(creatingOtp)
+	if err != nil {
+		return &pb.ResetPasswordResponse{
+			Status: http.StatusConflict,
+			Error:  "otp key and mob no saving failed",
+		}, nil
+	}
+
+	return &pb.ResetPasswordResponse{
+		Status:           http.StatusOK,
+		OtpValidationKey: otpValidationKey,
+	}, nil
+}
+
+func (s *Server) ResetPasswordValidation(ctx context.Context, req *pb.ResetPasswordValidationRequest) (
+	*pb.ResetPasswordValidationResponse, error) {
+	fetchingMobNo, err := s.User.FindByMobileNoAndKey(req.Key)
+	if err != nil {
+		return &pb.ResetPasswordValidationResponse{
+			Status: http.StatusConflict,
+			Error:  "Invalid Key",
+		}, nil
+	}
+
+	err = utils.CheckOtp(fetchingMobNo, req.Otp)
+	if err != nil {
+		return &pb.ResetPasswordValidationResponse{
+			Status: http.StatusConflict,
+			Error:  "Invalid otp",
+		}, nil
+	}
+
+	user, err := s.User.FindByPhoneNumber(fetchingMobNo)
+	if err != nil {
+		return &pb.ResetPasswordValidationResponse{
+			Status: http.StatusConflict,
+			Error:  "Mobile Number not valid",
+		}, nil
+	}
+
+	user.Password = utils.HashPassword(req.Paswword)
+
+	if s.User.Update(user); err != nil {
+		return &pb.ResetPasswordValidationResponse{
+			Status: http.StatusConflict,
+			Error:  "Reset Password Failed",
+		}, nil
+	}
+
+	return &pb.ResetPasswordValidationResponse{
+		Status: http.StatusOK,
+	}, nil
+
+}
+
+func (s *Server) AddAddress(ctx context.Context, *pb.UserProfileResponse, error){
+
+}
+
+func (s *Server) UserProfile(ctx context.Context, *pb.UserProfileResponse, error) {
+
+}
+
 func (s *Server) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.ValidateResponse, error) {
 	claims, err := s.Jwt.ValidateToken(req.Token)
 
